@@ -13,22 +13,23 @@
                 </div>
                 <div class="chat-header-action mt-2">
                     <ul class="list-inline">
-                        <li class="list-inline-item">
+                        <!-- <li class="list-inline-item">
                             <a href="#" class="btn btn-success">
-                                <i class="fa fa-phone" aria-hidden="true"></i>
+                                <i class="mdi mdi-phone" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="list-inline-item">
                             <a href="#" class="btn btn-secondary">
-                                <i class="fa fa-video-camera" aria-hidden="true"></i>
+                                <i class="mdi mdi-video" aria-hidden="true"></i>
                             </a>
-                        </li>
+                        </li> -->
                         <li class="list-inline-item">
-                            <a href="#" class="btn btn-secondary" data-toggle="dropdown">
-                                <i class="ti-more"></i>
+                            <a href="#" class="btn btn-light" data-toggle="dropdown">
+                                <i class="mdi mdi-dots-vertical"></i>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right">
                                 <a
+                                    @click.prevent="openProfile(user,false)"
                                     href="#"
                                     data-navigation-target="contact-information"
                                     class="dropdown-item"
@@ -42,13 +43,14 @@
                     </ul>
                 </div>
             </div>
-            <div class="chat-body" tabindex="1" style=" outline: none;" ref="chatbody">
+            <div class="chat-body p-0"  tabindex="1" style=" outline: none;" ref="chatbody">
                 <!-- Messages -->
-                <messages :data-messages="messages"></messages>
+                <messages :data-messages="messages" v-if="!isMedia()"></messages>
+                <Media @send="sendMessage" v-if="isMedia()" :user="user"/>
                 <!-- OR -->
             </div>
             <!-- Actions -->
-            <Actions @send="sendMessage" :payload="{user,refId:messages._id}" />
+            <Actions @send="sendMessage" v-if="!isMedia()"  :payload="{user,refId:messages._id}" />
         </template>
     </div>
 </template>
@@ -62,7 +64,7 @@ import { eventBus } from "../../main";
 // import Axios from "axios";
 import Avatar from './../ui/Avatar';
 // const {socket}= require("./../../socket");
-
+import Media from "./Media";
 export default {
     mixins: [Mixin],
     data() {
@@ -76,14 +78,20 @@ export default {
     components: {
         Messages,
         Actions,
-        Avatar
+        Avatar,
+        Media
+    },
+    computed:{
+        onMedia(){
+            return this.$store.getters.media;
+        }
     },
     methods: {
-        sendMessage(text) {
+        sendMessage(text,file) {
 
             const message = {
                 _id: +new Date(),
-                isFile: false,
+                isFile: file ? true : true,
                 from: this.authuser._id,
                 to: this.user._id,
                 text: text,
@@ -96,7 +104,13 @@ export default {
                 to_user: this.user,
                 user: this.user,
                 status: true,
+                file:file ? file : undefined
             };
+            if(!text){
+                delete message.text;
+            }
+            console.log(message)
+
             this.$store.commit("addMessage", {
                 user: this.user,
                 message: message,
@@ -106,6 +120,7 @@ export default {
                 .dispatch("sendMessage", {
                     text: text,
                     to: this.user._id,
+                    file:file,
                     user: this.user,
                     message: message,
                 })
@@ -116,6 +131,9 @@ export default {
                     console.log(error);
                 });
         },
+        isMedia(){
+            return this.onMedia.find(m => m._id==this.user._id);
+        }
     },
      
     created() {
@@ -124,16 +142,14 @@ export default {
                 scrollTop: $(".chat-body").prop("scrollHeight"),
             });
         }, 100);
-        eventBus.$on("freshStart",() => {
-            console.log("freshStart")
-            const conversation = this.$store.getters.conversations.find(
-                (conversation) => conversation.id == user._id
-            );
-            this.messages = conversation.messages;
-            console.log("freshStart",this.messages)
-        });
-        eventBus.$on("added", () => {
-            
+        
+        eventBus.$on("added", (data) => {
+            if(data.new){
+                const conversation = this.$store.getters.conversations.find(
+                    (conversation) => conversation.id == user._id
+                );
+                this.messages = conversation.messages; 
+            }
             setTimeout(() => {
                 try{
                     this.$refs.chatbody.scrollTop =
@@ -153,7 +169,6 @@ export default {
         );
         if (conversation) {
             this.messages = conversation.messages;
-            console.log("messages",this.messages)
             this.user = conversation.user;
             this.$store.commit("conversationWith", conversation.user);
         } else {
@@ -167,6 +182,7 @@ export default {
 </script>
 
 <style>
+
 .layout .content .chat .chat-header {
     display: -webkit-box;
     display: -webkit-flex;
@@ -178,7 +194,7 @@ export default {
     -moz-box-pack: justify;
     -ms-flex-pack: justify;
     justify-content: space-between;
-    border-bottom: 2px solid #e1e1e1;
+    /* border-bottom: 2px solid #e1e1e1; */
     padding: 10px;
     align-items: center;
     background-color: #26a69ad6;

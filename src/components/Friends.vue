@@ -107,7 +107,6 @@
 <script>
 import Axios from "axios";
 import { mapGetters } from "vuex";
-
 export default {
     computed: {
         ...mapGetters({

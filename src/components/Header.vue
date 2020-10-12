@@ -22,16 +22,17 @@
         </div>
         <div class="dropdown">
             <a href="#" data-toggle="dropdown">
-                <span class="mr-2 d-none d-sm-inline-block">{{user.name}}</span>
+                <span class="mr-2 d-none d-sm-inline-block">{{authuser.name}}</span>
                 <figure class="avatar">
-                    <img v-if="user.displayPicture" :src="user.displayPicture" class="rounded-circle" alt="image">
-                    <span v-else class="avatar-title bg-success rounded-circle" :class="user.meta.color[0]">{{ user.name[0] }}</span>
+                    <img v-if="authuser.displayPicture" :src="authuser.displayPicture" class="rounded-circle" alt="image">
+                    <span v-else class="avatar-title bg-success rounded-circle" :class="authuser.meta.color[0]">{{ authuser.name[0] }}</span>
                 </figure>
             </a>
             <div class="dropdown-menu dropdown-menu-right">
-                <a href="#" class="dropdown-item" data-navigation-target="contact-information">Profile</a>
+                <a href="#" @click.prevent="openProfile(authuser,true)" class="dropdown-item" data-navigation-target="contact-information">Profile</a>
                 <a href="#" class="dropdown-item" data-toggle="modal" data-target="#settingModal">Settings</a>
                 <div class="dropdown-divider"></div>
+                <router-link to="/"   class="dropdown-item text-warning">Refresh</router-link>
                 <a href="#" @click.prevent="logout()" class="dropdown-item text-danger">Logout</a>
             </div>
         </div>
@@ -41,8 +42,9 @@
 </template>
 
 <script>
+import Mixin from "./../mixin";
 export default {
-    props:["user"],
+    mixins:[Mixin],
     methods:{
         logout(){
             this.$emit("logout");

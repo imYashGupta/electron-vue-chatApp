@@ -24,14 +24,12 @@ export default {
     },
     methods:{
         authenticate(token) {
-            console.log("[tokne]",token);
-            console.log("[__token]",localStorage.getItem("__token"));
             this.$store.dispatch("authenticate",token).then(response => {
                 if(response.status==200){
                     return this.$store.dispatch("homeData") 
                 }
             }).then(home => {
-                console.log("[HOME]",home)
+                console.log(home)
                 this.loading=100;
                 setTimeout(() => {
                     this.$router.push("home");    

@@ -1,23 +1,32 @@
 <template>
     <div class="message-item mb-1" :class="user._id!=message.to && 'outgoing-message'" >
-        <div class="message-avatar"  >
+       <!--  <div class="message-avatar"  >
             <figure class="avatar" title="message.user.name"  >
                 <img src="/assets/images/placeholder/images.png" v-if="diffrence()"    class="rounded-circle" alt="image" />
             </figure>
-        </div>
+        </div> -->
         <div>
-            <div class="message-content">{{ message.text }}   </div>
-            <div class="time"  v-if="diffrence() "  >
-                {{new Date(message.createdAt).toLocaleTimeString()}}
+            <div class="message-content can-select " :class="message.isFile && 'message-image'"> 
+            <img v-if="message.isFile" :src="message.file" class="rounded" alt="image">
+            {{ message.text }} 
+            <div class="time no-select"   >
+                {{time}}
                 <!-- <i class="ti-double-check text-info"></i> -->
+            </div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+import moment from "moment";
 export default {
     props: ["message", "user", "index",'oneafter'],
+    computed:{
+        time(){
+            return moment(this.message.createdAt).format("hh:mm A");
+        }
+    },
     methods:{
         diffrence(){
             if(this.oneafter!=false){

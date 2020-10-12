@@ -6,14 +6,14 @@
             <form>
                 <input type="text" class="form-control" placeholder="Search">
             </form>
-            <div class="sidebar-body">
+            <div class="sidebar-body no-select">
                 <ul class="list-group list-group-flush">
-                    <router-link tag="li" class="list-group-item" v-for="convo in conversations" :key="convo.id" :to="{name:'chat',params:{id:convo.id,user:convo.user}}">
+                    <router-link tag="li" class="list-group-item"  v-for="convo in conversations" :class="conversationsWith==convo.id ? 'active-chat' : ''" :key="convo.id" :to="{name:'chat',params:{id:convo.id,user:convo.user}}">
                         <Avatar :user="convo.user" />
                         <div class="users-list-body">
                             <div>
-                                <h5 class="text-primary">{{convo.messages[0].user.name}}</h5>
-                                <p>{{convo.messages[convo.messages.length-1].text}}</p>
+                                <h5 class="text-primary">{{convo.user.name}}</h5>
+                                <p :class="conversationsWith==convo.id ? 'text-white' : ''" :key="convo.id">{{convo.messages[convo.messages.length-1].text}}</p>
                             </div>
                             <div class="users-list-action">
                                 <!-- <div class="new-message-count">3</div> -->
@@ -35,10 +35,14 @@ export default {
     components:{
         Avatar
     },
-    props:["conversations","loading"],
-    created(){
-        console.log("[convo]",this.conversations);
+    computed:{
+        conversationsWith(){
+            return this.$store.getters.conversationWith?._id;
+        }
     },
+     
+    props:["conversations","loading"],
+    
     
 }
 </script>

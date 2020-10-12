@@ -1,17 +1,18 @@
 <template>
-    <div class="home">
+    <div class="home page">
         <!-- Page loading -->
         <!-- <div class="page-loading"></div> -->
         <!-- ./ Page loading -->
 
         <!-- Body plate -->
-        <div class="body-plate"></div>
+        <div class="body-plate" @click="hideModalBg()"></div>
         <!-- ./ Body plate -->
 
         <!-- Disconnected modal -->
         <modals />
+        <edit-profile></edit-profile>
 
-        <app-header :user="user" @logout="handleLogout" />
+        <app-header @logout="handleLogout" />
 
         <!-- Layout -->
         <div class="layout">
@@ -36,12 +37,12 @@
                 <!-- ./ Archived sidebar -->
 
                 <!-- Profile sidebar -->
-                <profile-sidebar />
+                <profile-sidebar v-if="profile" :data="profile" />
                 <!-- Profile sidebar -->
 
                 <!-- Chat -->
                 <!-- <chat-window :onChat="onChat"/> -->
-                <router-view :key="$route.fullPath"></router-view>
+                    <router-view :key="$route.fullPath"></router-view>
 
                 <!-- ./ Chat -->
             </div>
@@ -64,10 +65,10 @@ import Friends from "./../components/Friends";
 import Favorites from "./../components/Favorites";
 import Archived from "./../components/Archived";
 import Profile from "./../components/Profile";
+import EditProfile from './../components/Modals/EditProfile'
 // import Chat from "./../components/Chat/Index";
 import $ from "jquery";
 import { eventBus } from "./../main";
-import user from "../APIs/user";
 
 export default {
     name: "Home",
@@ -80,6 +81,7 @@ export default {
         "favorites-sidebar": Favorites,
         "archived-sidebar": Archived,
         "profile-sidebar": Profile,
+        "edit-profile":EditProfile
         // "chat-window":Chat
     },
     data(){
@@ -89,7 +91,13 @@ export default {
             conversations:[],
             loading:false,
             onChat:false,
-            records:[]
+            records:[],
+            profile:false,
+        }
+    },
+    computed:{
+        authUser(){
+            return this.$store.getters.user;
         }
     },
     methods:{
@@ -112,31 +120,29 @@ export default {
                 arr.splice(toIndex, 0, element);
                 return arr;
         },
-        sendMessage(messageObj,to){
-            let tempId= messageObj._id;
-            console.log('[tempid]',tempId)            
-            user.send({
-                text:messageObj.text,
-                to:to._id
-            },(response) => {
-                console.log(response);
-            },(error) => {
-                console.log(error);
-            })
+        hideModalBg(){
+            $(".body-plate").hide();
+            console.log("[HIDE]");
+            this.profile = false;
         }
     },
     created() {
-        console.log(this.$store.getters.conversationWith)
         $("body").removeClass("form-membership");
         this.user=this.$store.getters.user;
         this.conversations = this.$store.getters.conversations;
-        /* eventBus.$on("send",({messageObj,to}) => {
-            const getIndex=this.conversations.findIndex(convo => convo.id==to);
-            this.sendMessage(messageObj,to,getIndex);
-            this.conversations[getIndex].messages.push(messageObj);
-            const top=this.arraymove(this.conversations,getIndex,0);
-            this.conversations = top;
-        }) */
+        this.sockets.subscribe(this.authUser._id,(data) => {
+            this.$store.commit("addMessage",{user:data.message.from_user,message:data.message});
+        })
+
+        eventBus.$on("SHOW_PROFILE",(data) => {
+            this.profile = data;
+        });
+
+        eventBus.$on("CLOSE_PROFILE",() => {
+            this.hideModalBg();
+        })
+
+         
     },
 };
 </script>
@@ -162,4 +168,7 @@ export default {
 ::-webkit-scrollbar-thumb:hover {
     background: transparent !important;
 }
+
+ 
+
 </style>

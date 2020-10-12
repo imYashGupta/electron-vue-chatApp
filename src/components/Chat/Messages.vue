@@ -1,5 +1,5 @@
 <template>
-    <div class="messages" ref="messages">
+    <div class="messages p-4" ref="messages">
         <Message
             v-for="(message,index) in messages"
             :key="message._id"
@@ -76,7 +76,7 @@ export default {
     },
     created() {
         this.authuser = this.$store.getters.user;
-        console.log("log", this.ref);
+       
     },
 };
 </script>

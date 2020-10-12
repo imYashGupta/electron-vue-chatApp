@@ -8,6 +8,7 @@
                     title
                     type="button"
                     data-original-title="Emoji"
+                    @click="showEmojis()"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -51,33 +52,59 @@
                     </svg>
                 </button>
             </div>
-            <input type="text" class="form-control" v-model="text" placeholder="Write a message." />
+            <input
+                type="text"
+                class="form-control"
+                ref="text"
+                v-model="text"
+                placeholder="Write a message."
+            />
             <div class="form-buttons">
-                <button
-                    class="btn btn-light d-none d-sm-inline-block"
-                    data-toggle="tooltip"
-                    title
-                    type="button"
-                    data-original-title="Add files"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="feather feather-paperclip"
+                <div class="dropdown">
+                    <button
+                        class="btn btn-light d-none d-sm-inline-block"
+                        data-toggle="dropdown"
+                        title
+                        type="button"
+                        data-original-title="Add files"
                     >
-                        <path
-                            d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
-                        />
-                    </svg>
-                </button>
-                <button
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="feather feather-paperclip"
+                        >
+                            <path
+                                d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+                            />
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-left mb-4 mr-3">
+                        <a
+                            href="#"
+                            class="dropdown-item"
+                            @click.prevent="openFilePicker('image/*','image')"
+                        ><i class="mdi mdi-image"></i> Image</a>
+                        <a
+                            href="#"
+                            class="dropdown-item"
+                            data-toggle="modal"
+                        ><i class="mdi mdi-file"></i> Document</a>
+                        <a
+                            href="#"
+                            class="dropdown-item"
+                            data-toggle="modal"
+                            @click.prevent="openFilePicker('video/*','video')"
+                        ><i class="mdi mdi-video"></i> Video</a>
+                    </div>
+                </div>
+                <!-- <button
                     class="btn btn-light d-none d-sm-inline-block"
                     data-toggle="tooltip"
                     title
@@ -101,7 +128,7 @@
                         <line x1="12" y1="19" x2="12" y2="23" />
                         <line x1="8" y1="23" x2="16" y2="23" />
                     </svg>
-                </button>
+                </button>-->
                 <button @click.prevent="send()" class="btn btn-primary" type="submit">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -119,25 +146,67 @@
                         <polygon points="22 2 15 22 11 13 2 9 22 2" />
                     </svg>
                 </button>
+                <input ref="fileInput" type="file" id="media" class="d-none" @change="handleFiles" multiple />
             </div>
+        
         </form>
+        
     </div>
 </template>
 
 <script>
+import { Video  } from 'video-metadata-thumbnails';
+import { remote } from "electron";
 export default {
-    data(){
+    props:["payload"],
+    data() {
         return {
-            text:"",
-        }
+            text: "",
+            type:"",
+        };
     },
-    methods:{
-        send(){
+    methods: {
+        send() {
             // console.log("em")
-            this.$emit("send",this.text);
-            this.text="";
-        }
-    }
+            if (this.text == "") {
+                return;
+            }
+            this.$emit("send", this.text);
+            this.text = "";
+        },
+        showEmojis() {
+            this.$refs.text.focus();
+            remote.app.showEmojiPanel();
+            console.log(remote.app);
+        },
+        openFilePicker(accept,type){
+            this.$refs.fileInput.setAttribute("accept",accept);
+            this.type=type;
+            this.$refs.fileInput.click();
+        },
+        async handleFiles(){
+            const fileList = this.$refs.fileInput.files;
+            const files = Array.from(fileList);
+            const thumbs= [];
+            if(this.type=='video'){
+                for(const f of files){
+                    const video = new Video(f);
+                    const thumbnails=await video.getThumbnails({
+                        quality: 0.6
+                    })
+                    var reader = new FileReader();
+                    reader.readAsDataURL(thumbnails[0].blob); 
+                    reader.onloadend = function() {
+                        var base64data = reader.result; 
+                        thumbs.push(base64data);        
+                    }
+                }
+            }
+            
+            this.$store.commit("addMedia",{_id:this.payload.user._id,files:files,type:this.type,thumbs:thumbs});
+        },
+        
+    },
 };
 </script>
 

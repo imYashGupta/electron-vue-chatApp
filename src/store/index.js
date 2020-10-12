@@ -7,7 +7,8 @@ export default {
         user:{},
         conversations:[],
         conversationWith:null,
-        contacts:[]
+        contacts:[],
+        media:[],
     },
     getters:{
         isLoggedIn(state){
@@ -24,6 +25,9 @@ export default {
         },
         contacts(state){
             return state.contacts;
+        },
+        media(state){
+            return state.media;
         }
     },
     mutations:{
@@ -60,21 +64,54 @@ export default {
                     _id:state.user._id+" and "+user._id
                 }
                 state.conversations.unshift(newConversation);
-                eventBus.$emit("freshStart",true);
+                eventBus.$emit("added",{new:true});
                 //state.conversations = [newConversation,...state.conversations]
             }else{
                 //push to existing conversation
+
                 state.conversations[index].messages.push(message);
-                eventBus.$emit("added",false);
+                const moveToTop = (arr, fromIndex, toIndex) => {
+                    var element = arr[fromIndex];
+                    arr.splice(fromIndex, 1);
+                    arr.splice(toIndex, 0, element);
+                    return arr;
+                }
+                const moved=moveToTop(state.conversations,index,0);
+                state.conversations=moved;
+                eventBus.$emit("added",{new:false,index:index});
             }
         },
         updateMessageStatus(state,{user,message,status}){
-            const index= state.conversations.findIndex(conversation => conversation.id=user._id);
+            const index= state.conversations.findIndex(conversation => conversation.id==user._id);
             const messageIndex=state.conversations[index].messages.findIndex(msg => msg._id==message._id);
             const msg=state.conversations[index].messages[messageIndex];
             msg.status = status;
-            console.log(state.conversations[index].messages)
 
+        },
+        updateProfile(state,user){
+            state.user = user;
+        },
+        addMedia(state,data){
+            state.media.push(data);
+            console.log("media added");
+        },
+        removeMedia(state,user){
+            const index=state.media.findIndex(m => m._id==user._id);
+            state.media.splice(index,1);
+        },
+        removeMediaFile(state,{user,index}){
+            const filesIndex=state.media.findIndex(m => m._id==user._id);
+            if( state.media[filesIndex].files.length == 1 ){
+                state.media.splice(filesIndex);
+            }
+            else{
+                state.media[filesIndex].files.splice(index,1);
+            }
+        },
+        addCaptionToFile(state,{user,index,text}){
+            const filesIndex=state.media.findIndex(m => m._id==user._id);
+            state.media[filesIndex].files[index].caption = text;
+            console.log(state);
         }
     },
     actions:{

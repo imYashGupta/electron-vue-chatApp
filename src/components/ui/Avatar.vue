@@ -1,5 +1,5 @@
 <template>
-    <figure class="avatar" :class="size">
+    <figure class="avatar no-select" :class="size">
         <img
             v-if="user.displayPicture!=null"
             @error="user.displayPicture=null"

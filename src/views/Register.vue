@@ -1,5 +1,5 @@
 <template>
-<div class="body-form-membership">
+<div class="body-form-membership page">
     <div class="form-wrapper">
 
     <!-- logo -->
@@ -224,5 +224,10 @@ body.dark input, body.dark select, body.dark textarea {
     background-color: #2e364a !important;
     color: rgba(255, 255, 255, 0.7);
     border-color: #424a5e !important;
+}
+
+.page{
+    position: relative;
+    width: inherit;
 }
 </style>

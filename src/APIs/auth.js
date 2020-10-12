@@ -1,7 +1,5 @@
 import Axios from "axios"
-/* if(localStorage.getItem("__token")!=''){
-    Axios.defaults.headers.common['Authorization'] = 'Bearer '+localStorage.getItem("__token");
-} */
+Axios.defaults.headers.common['Authorization'] = undefined;
 export default{
     login(credentials,success,error){
         const {email,password} = credentials;

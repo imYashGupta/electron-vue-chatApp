@@ -16,8 +16,20 @@ export default {
             to:payload.to
         }).then(response => success(response)).catch(err => error(err));
     } */
-    homes({text,to},success,error){
-        Axios.post("chat/send",{ text,to}).then(response => success(response)).catch(err => error(err));
+    homes({text,to,file},success,error){
+        let formData = new FormData();
+        if(text!=undefined){
+            formData.append("text",text);
+        }
+        formData.append("to",to);
+        if(file){
+            formData.append("attachment",file);
+        }
+        Axios.post("chat/send",formData,{
+            headers:{
+                'Content-Type' : 'multipart/form-data'
+            }
+        }).then(response => success(response)).catch(err => error(err));
     },
     getUser({id},success,error){
         Axios.post("user/get",{

@@ -3,27 +3,28 @@
             <header>
                 <span>Profile</span>
                 <ul class="list-inline">
-                    <li class="list-inline-item">
+                    <li class="list-inline-item" v-if="auth">
                         <a href="#" class="btn btn-outline-light" data-toggle="modal" data-target="#editProfileModal"
                            title="Edit profile">
-                            <i data-feather="edit-2"></i>
+                            <i class="mdi mdi-pencil"></i>
                         </a>
                     </li>
                     <li class="list-inline-item">
-                        <a href="#" class="btn btn-danger sidebar-close">
-                            <i data-feather="x"></i>
+                        <a @click="closeProfile()" href="#" class="btn btn-danger sidebar-close">
+                            <i class="mdi mdi-close"></i>
                         </a>
                     </li>
                 </ul>
             </header>
             <div class="sidebar-body">
                 <div class="text-center">
-                    <figure class="avatar avatar-xl mb-4">
+                    <!-- <figure class="avatar avatar-xl mb-4">
                         <img src="dist/media/img/avatar3.png" class="rounded-circle" alt="image">
-                    </figure>
-                    <h5 class="mb-1">Mirabelle Tow</h5>
-                    <small class="text-muted font-italic">Last seen: Today</small>
-                    <ul class="nav nav-tabs justify-content-center mt-5" id="myTab" role="tablist">
+                    </figure> -->
+                    <Avatar :user="user" size="avatar-xl mb-4" />
+                    <h5 class="mb-1">{{user.name}}</h5>
+                    <small v-if="loaded" class="text-muted font-italic">Joined On: {{formatDate(user.createdAt,"DD MMM,YYYY")}}</small>
+                    <ul  v-if="loaded" class="nav nav-tabs justify-content-center mt-5" id="myTab" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
                                aria-controls="home" aria-selected="true">About</a>
@@ -34,63 +35,59 @@
                         </li>
                     </ul>
                 </div>
-                <div class="tab-content" id="myTabContent">
+                <div  v-if="loaded" class="tab-content" id="myTabContent">
                     <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-                        <p class="text-muted">Lorem ipsum is a pseudo-Latin text used in web design, typography,
-                            layout, and printing in place of English to emphasise design elements over content.
-                            It's also called placeholder (or filler) text. It's a convenient tool for
-                            mock-ups.</p>
+                        <p v-if="user.meta.about!=undefined" class="text-muted">{{user.meta.about}}</p>
+                        <div class="mt-4 mb-4">
+                            <h6>Email</h6>
+                            <p  class="text-primary text-isemail"><a :href="'mailto:'+user.email">{{user.email}}</a></p>
+                        </div>
                         <div class="mt-4 mb-4">
                             <h6>Phone</h6>
-                            <p class="text-muted">(555) 555 55 55</p>
+                            <p class="text-muted">+91 {{user.phone}}</p>
                         </div>
-                        <div class="mt-4 mb-4">
+                        <div class="mt-4 mb-4" v-if="user.meta.city">
                             <h6>City</h6>
-                            <p class="text-muted">Germany / Berlin</p>
+                            <p class="text-muted">{{user.meta.city}}</p>
                         </div>
-                        <div class="mt-4 mb-4">
+                        <div class="mt-4 mb-4"  v-if="user.meta.website">
                             <h6>Website</h6>
                             <p>
-                                <a href="#">www.franshanscombe.com</a>
+                                <a @click.prevent="openLinks(user.meta.website)" class="can-select" href="#">{{user.meta.website}}</a>
                             </p>
                         </div>
-                        <div class="mt-4 mb-4">
+                        <div class="mt-4 mb-4" v-if="user.socialMediaHandles">
                             <h6 class="mb-3">Social media accounts</h6>
                             <ul class="list-inline social-links">
-                                <li class="list-inline-item">
-                                    <a href="#" class="btn btn-sm btn-floating btn-facebook"
+                                <li class="list-inline-item" v-if="user.socialMediaHandles.facebook">
+                                    <a @click.prevent="openLinks('https://www.facebook.com/'+user.socialMediaHandles.facebook)" href="#" class="btn btn-sm btn-floating btn-facebook"
                                        data-toggle="tooltip" title="Facebook">
-                                        <i class="fa fa-facebook"></i>
+                                        <i class="mdi mdi-facebook"></i>
                                     </a>
                                 </li>
-                                <li class="list-inline-item">
-                                    <a href="#" class="btn btn-sm btn-floating btn-twitter"
+                                <li class="list-inline-item" v-if="user.socialMediaHandles.twitter">
+                                    <a @click.prevent="openLinks('https://twitter.com/'+user.socialMediaHandles.twitter)" href="#" class="btn btn-sm btn-floating btn-twitter"
                                        data-toggle="tooltip" title="Twitter">
-                                        <i class="fa fa-twitter"></i>
+                                        <i class="mdi mdi-twitter"></i>
                                     </a>
                                 </li>
-                                <li class="list-inline-item">
-                                    <a href="#" class="btn btn-sm btn-floating btn-whatsapp"
-                                       data-toggle="tooltip" title="Whatsapp">
-                                        <i class="fa fa-whatsapp"></i>
-                                    </a>
-                                </li>
-                                <li class="list-inline-item">
-                                    <a href="#" class="btn btn-sm btn-floating btn-linkedin"
-                                       data-toggle="tooltip" title="Linkedin">
-                                        <i class="fa fa-linkedin"></i>
-                                    </a>
-                                </li>
-                                <li class="list-inline-item">
-                                    <a href="#" class="btn btn-sm btn-floating btn-google" data-toggle="tooltip"
-                                       title="Google">
-                                        <i class="fa fa-google"></i>
-                                    </a>
-                                </li>
-                                <li class="list-inline-item">
-                                    <a href="#" class="btn btn-sm btn-floating btn-instagram"
+                               
+                                <li class="list-inline-item" v-if="user.socialMediaHandles.instagram">
+                                    <a @click.prevent="openLinks('https://instagram.com/'+user.socialMediaHandles.instagram)" href="#" class="btn btn-sm btn-floating btn-instagram"
                                        data-toggle="tooltip" title="Instagram">
-                                        <i class="fa fa-instagram"></i>
+                                        <i class="mdi mdi-instagram"></i>
+                                    </a>
+                                </li>
+                                <li class="list-inline-item" v-if="user.socialMediaHandles.linkedin">
+                                    <a @click.prevent="openLinks('https://linkedin.com/'+user.socialMediaHandles.linkedin)" href="#" class="btn btn-sm btn-floating btn-linkedin"
+                                       data-toggle="tooltip" title="Linkedin">
+                                        <i class="mdi mdi-linkedin"></i>
+                                    </a>
+                                </li>
+                                <li class="list-inline-item" v-if="user.socialMediaHandles.youtube">
+                                    <a @click.prevent="openLinks('https://youtube.com/'+user.socialMediaHandles.youtube)" href="#" class="btn btn-sm btn-floating btn-youtube" data-toggle="tooltip"
+                                       title="Google">
+                                        <i class="mdi mdi-youtube"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -153,16 +150,72 @@
                         </div>
                     </div>
                 </div>
+                <div v-else class="text-center mt-5">
+                    <Spinner />
+                </div>
             </div>
         </div>
 </template>
 
 <script>
+import Axios from 'axios';
+import Mixin from "./../mixin";
+import Avatar from "./ui/Avatar";
+import Spinner from "./ui/Spinner";
 export default {
-
+    props:["data"],
+    data(){
+        return {
+            loaded:false,
+            loadedUser:null,
+        }
+    },
+    computed:{
+        user(){
+            if(this.data.auth){
+                return this.$store.getters.user;
+            }
+            else{
+                if(this.loadedUser==null){
+                    return this.data.user;
+                }else{
+                    return this.loadedUser;
+                }
+            }
+        },
+        auth(){
+            return this.data.auth;
+        }
+    },
+    mixins:[Mixin],
+    components:{
+        Avatar,Spinner
+    },
+    created(){
+        if(this.data.auth==false){
+            Axios.post("user/get",{
+                id:this.user._id
+            }).then(response => {
+                this.loaded = true;
+                this.loadedUser = response.data;
+            }).catch(err => {
+                console.log(err);
+            })
+        }else{
+            this.loaded=true;
+        }
+    },
+    destroyed(){
+        console.log("[Profile destory]");
+    }
 }
 </script>
 
-<style>
-
+<style scoped>
+    .mdi{
+        font-size: 18px;
+    }
+    .text-isemail::first-letter{
+        text-transform: uppercase;
+    }
 </style>

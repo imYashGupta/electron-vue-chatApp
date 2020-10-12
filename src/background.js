@@ -1,10 +1,11 @@
 'use strict'
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow  } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
+console.log("isdev",isDevelopment)
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
@@ -25,7 +26,9 @@ function createWindow() {
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-      nodeIntegration: true
+      nodeIntegration: true,
+      preload: "preload.js"
+
     },
     titleBarStyle: "hidden", // add this line
   })
@@ -44,6 +47,7 @@ function createWindow() {
     win = null
   })
 }
+ 
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -68,11 +72,16 @@ app.on('activate', () => {
 app.on('ready', async () => {
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
+    console.log("installing")
     try {
-      await installExtension(VUEJS_DEVTOOLS)
+      let c=await installExtension(VUEJS_DEVTOOLS)
+      console.log("C",c)
     } catch (e) {
       console.error('Vue Devtools failed to install:', e.toString())
     }
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    require('vue-devtools').install()
   }
   createWindow()
 })
